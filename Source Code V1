@@ -1,0 +1,57 @@
+float divider = 1000, vin, volt, vout;
+int buffer [3], light, indicator = 0;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(7, OUTPUT);
+  pinMode(A1, INPUT);
+  digitalWrite(7, HIGH);
+}
+
+void loop() {
+  sensorRead();
+  
+  Serial.print("==Light Data==\n");
+  Serial.print("1st Loop : ");
+  Serial.print(buffer[0]);
+  Serial.print('\n');
+
+  Serial.print("2nd Loop : ");
+  Serial.print(buffer[1]);
+  Serial.print('\n');
+
+  Serial.print("3rd Loop : ");
+  Serial.print(buffer[2]);
+  Serial.print('\n');
+  Serial.print('\n');
+  
+
+  if(buffer[0] < 35 && buffer[1] < 35 && buffer[2] < 35){
+     if(indicator == 0){
+        sensorRead();
+        if(buffer[0] < 35 && buffer[1] < 35 && buffer[2] < 35){
+            digitalWrite(7, LOW);
+            indicator = 1;
+        }
+     }
+  }
+  if(buffer[0] > 40 && buffer[1] > 40 && buffer[2] > 40){
+     if(indicator == 1){
+        delay(90000);
+
+        sensorRead();
+        if(buffer[0] > 40 && buffer[1] > 40 && buffer[2] > 40){
+            digitalWrite(7, HIGH);
+            indicator = 0;
+        }
+     }
+  }
+}
+
+void sensorRead(){
+  for(int i = 0; i<3; i++){
+    light = analogRead(A0);
+    buffer[i] = ((light/divider)*100);
+    delay(700);
+  }
+}
