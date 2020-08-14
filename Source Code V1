@@ -1,3 +1,8 @@
+/*
+Versi pertama algoritma lampu mobil otomatis dimana ketika cahaya kurang dari nilai yang di tentukan
+lampu akan mati setelah 90 detik
+*/
+
 float divider = 1000, vin, volt, vout;
 int buffer [3], light, indicator = 0;
 
