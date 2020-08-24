@@ -1,0 +1,127 @@
+/*
+1. Versi ketiga algoritma lampu mobil otomatis dimana ketika cahaya kurang dari nilai yang di tentukan
+   dan dapat di interupsi dengan penggunaan saklar. Ketika lampu menyala pada siang hari,
+   maka hanya dapat dimatikan dengan saklar saja
+2. Impemented RTC
+3. Timed algorithm for day and night
+*/
+
+#include "DS3231_Simple.h"
+DS3231_Simple Clock;
+
+float divider = 1000;
+int buffer [3], light, indicator = 0, buttonState = 0;
+
+int fhour;
+DateTime waktu;
+
+void setup() {
+  Serial.begin(9600);
+  Clock.begin();
+  
+  pinMode(7, OUTPUT);
+  pinMode(A1, INPUT);
+  pinMode(2, INPUT);
+}
+
+void loop() {
+  waktu = Clock.read();
+  showDate();
+
+  lightData();
+  int saklar = digitalRead(2);
+  Serial.print("\nSaklar : ");
+  Serial.print(saklar);
+  Serial.print('\n');
+
+  if(saklar == 1){
+    if(buttonState == 0){
+      buttonState = 1;
+    }
+    else if(buttonState == 1){
+      buttonState = 0;
+    }
+    Serial.print("Saklar : ");
+    Serial.print(buttonState);
+    Serial.print('\n');
+    delay(200);
+  }
+
+  if(buttonState == 0){
+    if(fhour >= 1830 || fhour <= 630){
+      if(indicator == 0){
+        sensorRead();
+        if(buffer[0] < 25 && buffer[1] < 25 && buffer[2] < 25){
+            digitalWrite(7, HIGH);
+            indicator = 1;
+        }
+      }
+    }
+    
+    else if(fhour > 630 || fhour < 1830){
+      sensorRead();
+      if(buffer[0] < 15 && buffer[1] < 15 && buffer[2] < 15){
+          digitalWrite(7, HIGH);
+          indicator = 1;
+      }
+
+      else if(buffer[0] > 15 && buffer[1] > 15 && buffer[2] > 15){
+          digitalWrite(7, LOW);
+          indicator = 0;
+      }
+    }
+  }
+
+  else if(buttonState == 1){
+    digitalWrite(7, LOW);
+    indicator = 0;
+  }
+}
+
+
+
+void sensorRead(){
+  for(int i = 0; i<3; i++){
+    light = analogRead(A0);
+    buffer[i] = ((light/divider)*100);
+    delay(700);
+  }
+}
+
+void lightData(){
+  for(int i = 0; i<3; i++){
+    light = analogRead(A0);
+    buffer[i] = ((light/divider)*100);
+    Serial.print("Light : ");
+    Serial.print(buffer[i]);
+    Serial.print('\n');
+  }
+}
+
+void showDate(){
+  fhour = concate(waktu.Hour, waktu.Minute);
+  Serial.print("Date : ");
+  Serial.print(waktu.Day);
+  Serial.print("/");
+  Serial.print(waktu.Month);
+  Serial.print("/");
+  Serial.print(waktu.Year);
+  Serial.print("\nHour : ");
+  Serial.print(waktu.Hour);
+  Serial.print(":");
+  Serial.print(waktu.Minute);
+  Serial.print(":");
+  Serial.println(waktu.Second);
+  Serial.print("Concat : ");
+  Serial.print(fhour);
+  Serial.print('\n');
+}
+
+int concate(int x, int y) {
+    int temp = y;
+    while (y != 0) {
+        x *= 10;
+        y /= 10;
+    }
+    return x + temp;
+}
